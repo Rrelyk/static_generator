@@ -22,7 +22,7 @@ class TextNode:
         # Then check if all properties are equal
         return (self.text == other.text and 
                 self.text_type == other.text_type and 
-                self.url == other.url)
+                self.url == other.url) 
 
     def __repr__(self):
         return f"TextNode({self.text}, {self.text_type}, {self.url})"
