@@ -36,6 +36,7 @@ class TestHTMLNode(unittest.TestCase):
         node = HTMLNode(props={})
         self.assertEqual(node.props_to_html(), "", "Empty props dict should return empty string")
 
+    # Test leafNode
     def test_leaf_to_html_p(self):
         node = LeafNode("p", "Hello, world!")
         self.assertEqual(node.to_html(), "<p>Hello, world!</p>", "LeafNode 'p' tag should be rendered correctly")
@@ -63,6 +64,48 @@ class TestHTMLNode(unittest.TestCase):
         # self.assertEqual(node.to_html(), '<input type="text" name="username" placeholder="Enter username"></input>')
         # For self-closing tags:
         self.assertEqual(node.to_html(), '<input type="text" name="username" placeholder="Enter username" />')
+
+    # Test parentNode
+    def test_to_html_with_children(self):
+        child_node = LeafNode("span", "child")
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(parent_node.to_html(), "<div><span>child</span></div>", "ParentNode should return child correctly")
+
+    def test_to_html_with_grandchildren(self):
+        grandchild_node = LeafNode("b", "grandchild")
+        child_node = ParentNode("span", [grandchild_node])
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(
+            parent_node.to_html(),
+            "<div><span><b>grandchild</b></span></div>",
+            "ParentNode should return grandchildren correctly"
+        )
+    
+    def test_to_html_with_no_children(self):
+        parent_node = ParentNode("div", None)
+        with self.assertRaises(ValueError):
+            parent_node.to_html()
+    
+    def test_to_html_with_no_tag(self):
+        child_node = LeafNode("span", "child")
+        parent_node = ParentNode(None, [child_node])
+        with self.assertRaises(ValueError):
+            parent_node.to_html()
+
+    def test_to_html_with_multiple_children(self):
+        child1 = LeafNode("b", "bold")
+        child2 = LeafNode("i", "italic")
+        parent = ParentNode("p", [child1, child2])
+        self.assertEqual(parent.to_html(), "<p><b>bold</b><i>italic</i></p>", "ParentNode with multiple children should return correctly")
+
+    def test_to_html_with_props(self):
+        child = LeafNode("span", "text")
+        parent = ParentNode("div", [child], {"class": "container"})
+        self.assertEqual(parent.to_html(), "<div class=\"container\"><span>text</span></div>", "ParentNode with props should return correctly")   
+    
+    def test_to_html_with_empty_children_list(self):
+        parent = ParentNode("div", [])
+        self.assertEqual(parent.to_html(), "<div></div>", "ParentNode with empty children list should return correctly")
 
 if __name__ == "__main__":
     unittest.main()
