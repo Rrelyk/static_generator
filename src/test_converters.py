@@ -43,5 +43,67 @@ class TestHTMLNode(unittest.TestCase):
         self.assertEqual(html_node.value, "", "TextNode conversion should properly return html_node.value")
         self.assertEqual(html_node.props, {"src": "https://www.google.com", "alt": "This is a text node"}, "TextNode conversion should properly return html_node.properties")
 
+    #split_nodes_delimiter testing
+    def test_split_nodes_delimiter_emptybefore(self):
+        node = TextNode(" `code block` word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
+        self.assertEqual(new_nodes,
+                         [
+                            TextNode(" ", TextType.TEXT),
+                            TextNode("code block", TextType.CODE),
+                            TextNode(" word", TextType.TEXT),
+                        ], "TextNodes with empty values before delimiter should render correctly")
+        
+    def test_split_nodes_delimiter_code(self):
+        node = TextNode("This is text with a `code block` word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
+        self.assertEqual(new_nodes,
+                         [
+                            TextNode("This is text with a ", TextType.TEXT),
+                            TextNode("code block", TextType.CODE),
+                            TextNode(" word", TextType.TEXT),
+                        ], "TextNodes split to code blocks should render correctly")
+        
+    def test_split_nodes_delimiter_multi_nodes(self):
+        node = TextNode("This is text with a `code block` word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node, node], "`", TextType.CODE)
+        self.assertEqual(new_nodes,
+                         [
+                            TextNode("This is text with a ", TextType.TEXT),
+                            TextNode("code block", TextType.CODE),
+                            TextNode(" word", TextType.TEXT),
+                            TextNode("This is text with a ", TextType.TEXT),
+                            TextNode("code block", TextType.CODE),
+                            TextNode(" word", TextType.TEXT),
+                        ], "Multiple TextNodes should render correctly")
+        
+    def test_split_nodes_delimiter_mismatch(self):
+        node = TextNode("This is text with a `code block** word", TextType.TEXT)
+        with self.assertRaises(Exception): 
+            split_nodes_delimiter([node], "`", TextType.CODE)
+
+    def test_split_nodes_delimter_bold(self):
+        node = TextNode("This is text with a **bold** word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertEqual(new_nodes,
+                         [
+                            TextNode("This is text with a ", TextType.TEXT),
+                            TextNode("bold", TextType.BOLD),
+                            TextNode(" word", TextType.TEXT),
+                        ], "TextNodes should render correctly")
+        
+    def test_split_nodes_delimiter_no_delimiter(self):
+        node = TextNode("This is plain text without delimiters!", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertEqual(new_nodes,
+                         [
+                            TextNode("This is plain text without delimiters!", TextType.TEXT)
+                        ], "TextNodes with no delimiters should render correctly")
+
+
+
+        
+
+
 if __name__ == "__main__":
     unittest.main()
