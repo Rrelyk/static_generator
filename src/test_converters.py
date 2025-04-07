@@ -100,9 +100,63 @@ class TestHTMLNode(unittest.TestCase):
                             TextNode("This is plain text without delimiters!", TextType.TEXT)
                         ], "TextNodes with no delimiters should render correctly")
 
-
-
+    #Test Regex Extractions
+    #Extract Images
+    def test_extract_markdown_images_base(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        matches = extract_markdown_images(text)
+        self.assertListEqual(matches,
+                        [("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")]
+                        ,"Markdown image extractions should generate text correctly")
         
+    def test_extract_markdown_images_no_images(self):
+        text = "This is text with no images"
+        matches = extract_markdown_images(text)
+        self.assertListEqual(matches,
+                        [],
+                        "Markdown image extractions with no images should extract no list")
+        
+    def test_extract_markdown_images_with_links(self):
+        text = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        matches = extract_markdown_images(text)
+        self.assertListEqual(matches,
+                        [],
+                        "Markdown image extractions with no images should extract no list")
+        
+    def test_extract_markdown_images_with_images_and_links(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        matches = extract_markdown_images(text)
+        self.assertListEqual(matches,
+                        [("rick roll", "https://i.imgur.com/aKaOqIh.gif")],
+                        "Markdown image extractions should generate text correctly")
+    #Extract Links
+    def test_extract_markdown_links_base(self):
+        text = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        matches = extract_markdown_links(text)
+        self.assertListEqual(matches,
+                        [("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")],
+                        "Markdown link extractions should generate text correctly")
+        
+    def test_extract_markdown_links_no_links(self):
+        text = "This is text with no links"
+        matches = extract_markdown_links(text)
+        self.assertListEqual(matches,
+                        [],
+                        "Markdown link extractions with no links should extract no list")
+        
+    def test_extract_markdown_links_with_images(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        matches = extract_markdown_links(text)
+        self.assertListEqual(matches,
+                        [],
+                        "Markdown link extractions with no links should extract no list")
+        
+    def test_extract_markdown_images_with_links_and_images(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        matches = extract_markdown_links(text)
+        self.assertListEqual(matches,
+                        [("to youtube", "https://www.youtube.com/@bootdotdev")],
+                        "Markdown link extractions should generate text correctly")
 
 
 if __name__ == "__main__":
