@@ -1,6 +1,15 @@
 from htmlnode import *
 from textnode import *
 import re
+from enum import Enum
+
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODE = "code"
+    QUOTE = "quote"
+    UNORDERED_LIST = "unordered_list"
+    ORDERED_LIST = "ordered_list"
 
 
 def text_node_to_html_node(text_node):
@@ -147,3 +156,47 @@ def extract_markdown_links(text):
     #matches = re.findall(r"\[(.*?)\]\((.*?)\)",text)
     matches = re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
     return matches
+
+def markdown_to_blocks(markdown):
+    # Split by double newlines
+    blocks = markdown.split('\n\n')
+    new_blocks = []
+    
+    for block in blocks:
+        # Strip the entire block first
+        stripped_block = block.strip()
+        
+        if stripped_block:
+            # Handle internal indentation by processing each line
+            lines = stripped_block.split('\n')
+            # Strip each line and join them back
+            normalized_block = '\n'.join(line.strip() for line in lines)
+            new_blocks.append(normalized_block)
+            
+    return new_blocks
+
+def block_to_block_type(block):
+    lines = block.split("\n")
+
+    if block.startswith(("# ", "## ", "### ", "#### ", "##### ", "###### ")):
+        return BlockType.HEADING
+    if len(lines) > 1 and lines[0].startswith("```") and lines[-1].startswith("```"):
+        return BlockType.CODE
+    if block.startswith(">"):
+        for line in lines:
+            if not line.startswith(">"):
+                return BlockType.PARAGRAPH
+        return BlockType.QUOTE
+    if block.startswith("- "):
+        for line in lines:
+            if not line.startswith("- "):
+                return BlockType.PARAGRAPH
+        return BlockType.UNORDERED_LIST
+    if block.startswith("1. "):
+        i = 1
+        for line in lines:
+            if not line.startswith(f"{i}. "):
+                return BlockType.PARAGRAPH
+            i += 1
+        return BlockType.ORDERED_LIST
+    return BlockType.PARAGRAPH
